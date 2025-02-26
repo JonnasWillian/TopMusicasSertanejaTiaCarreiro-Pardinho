@@ -3,17 +3,17 @@
 ![alt text](image.png)
 
 - Iniciando o projeto com Docker
-1 Na pasta 'backend' copie o arquivo '.env.example' e altere o nome para apenas '.env'
-2 Inicie os Contêineres: docker-compose up -d --build ou sudo docker-compose up -d --build (a depender do grupo no docker precise utilizar o sudo)
-3 Instale as dependências do Laravel:docker-compose exec backend composer install e docker-compose exec backend php artisan key:generate
-4 Configure o banco de dados: docker-compose exec backend php artisan migrate
-5 Para não precisar criar usuário administrador no banco de dados e nem os vídeos iniciais utilize o seeders: docker-compose exec backend php artisan db:seed
+- 1 Na pasta 'backend' copie o arquivo '.env.example' e altere o nome para apenas '.env'
+- 2 Inicie os Contêineres: docker-compose up -d --build ou sudo docker-compose up -d --build (a depender do grupo no docker precise utilizar o sudo)
+- 3 Instale as dependências do Laravel:docker-compose exec backend composer install e docker-compose exec backend php artisan key:generate
+- 4 Configure o banco de dados: docker-compose exec backend php artisan migrate
+- 5 Para não precisar criar usuário administrador no banco de dados e nem os vídeos iniciais utilize o seeders: docker-compose exec backend php artisan db:seed
 
 - Acesso a aplicação:
 Frontend React: http://localhost:3000
 Backend Laravel: http://localhost:8000
 
-- Acesso a página adimistrativa
+- Acesso a página adimistrativa:
 Para acessar com o usuário admnistrativo basta fazer o login com o email "admin@gmail.com" e senha: "12345678" caso tenha usado o seedres, ou crie um usuário e no banco na tabela 'usuarios' e altere a coluna 'status' de 0 para 1.
 
 - Testar requisição de consulta de top músicas:
