@@ -55,17 +55,26 @@ const App = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authStatus = checkAuthStatus();
-      if (authStatus) {
+      const isAuth = await checkAuthStatus();
+      
+      if (isAuth) {
         try {
           const response = await api.get('/me');
-          setUserAuthenticated(true);
-          setCurrentUser(response.data.user);
+          if (response.data && response.data.user) {
+            setUserAuthenticated(true);
+            setCurrentUser(response.data.user);
+          } else {
+            setUserAuthenticated(false);
+            setCurrentUser(null);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
         } catch (error) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          console.error("Erro ao verificar autenticação:", error);
           setUserAuthenticated(false);
           setCurrentUser(null);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
         }
       } else {
         setUserAuthenticated(false);
@@ -100,10 +109,14 @@ const App = () => {
 
   const handleSuggestionSubmit = async (data) => {
     try {
+      if (!userAuthenticated || !currentUser) {
+        return { success: false, error: 'Você precisa estar logado para sugerir músicas' };
+      }
+      
       const sugestao = {
         nome: data.nome,
         link: data.link,
-        usuario_id: currentUser?.id
+        usuario_id: currentUser.id
       };
   
       const response = await api.post('/musica', sugestao);
@@ -126,30 +139,38 @@ const App = () => {
   
       const response = await api.post('/login', credentials);
   
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-  
-      setUserAuthenticated(true);
-      setCurrentUser(response.data.user);
-      setIsLoginModalOpen(false);
-  
-      return { success: true };
+      if (response.data && response.data.token && response.data.user) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        setUserAuthenticated(true);
+        setCurrentUser(response.data.user);
+        setIsLoginModalOpen(false);
+        
+        return { success: true };
+      } else {
+        return { success: false, error: 'Resposta do servidor inválida' };
+      }
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       return { success: false, error: 'Usuário ou senha incorretos' };
     }
   };
 
-  const handleRegisterSubmit = (data) => {
-    setUserAuthenticated(true);
-    setCurrentUser(data.user);
-    window.location.href = '/';
+  const handleRegisterSubmit = async (data) => {
+    if (data && data.user) {
+      setUserAuthenticated(true);
+      setCurrentUser(data.user);
+      window.location.href = '/';
+    }
   };
 
   const handleLogout = async () => {
     await logout();
     setUserAuthenticated(false);
     setCurrentUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -186,14 +207,14 @@ const App = () => {
             </button>
 
             <div className="hidden sm:flex items-center space-x-4">
-              {userAuthenticated ? (
+              {userAuthenticated && currentUser ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-amber-100">Olá, {currentUser?.nome}</span>
+                  <span className="text-amber-100">Olá, {currentUser.nome}</span>
                   <button onClick={handleLogout} className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition-all">
                     Sair
                   </button>
-                  {currentUser?.status == 1 ? 
-                  <button onClick={handleLogout} className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition-all">
+                  {currentUser.status == 1 ? 
+                  <button className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition-all">
                     <Link to="/admin">
                         Página Administrativa
                     </Link> 
@@ -215,13 +236,13 @@ const App = () => {
 
           {menuOpen && (
             <div className="block sm:hidden bg-amber-800 p-4">
-              {userAuthenticated ? (
+              {userAuthenticated && currentUser ? (
                 <div className="flex flex-col space-y-3">
-                  <span className="text-amber-100">Olá, {currentUser?.nome}</span>
+                  <span className="text-amber-100">Olá, {currentUser.nome}</span>
                   <button onClick={handleLogout} className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition-all text-center">
                     Sair
                   </button>
-                  {currentUser?.status == 1 ? 
+                  {currentUser.status == 1 ? 
                     <Link to="/admin" className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition-all block text-center">
                         Página Administrativa
                     </Link> 
